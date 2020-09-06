@@ -99,7 +99,7 @@ public class OrderServiceTest {
     @Test
     public void testCreateNewOrder(){
         Mockito.when(orderRepository.save(Mockito.any())).thenReturn(getDummyOrderEntity());
-        orderService.createNewOrder(USER_ID,PRODUCT_ID, count);
+        orderService.createNewOrder(USER_ID,PRODUCT_ID);
         Mockito.verify(productMappingRepository,Mockito.times(1)).save(Mockito.any(OrderProductMappingEntity.class));
     }
 

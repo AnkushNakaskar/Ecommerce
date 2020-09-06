@@ -31,10 +31,10 @@ public class CartService {
         return cart;
     }
 
-    public void addProduct(Long userId, Long productId, Integer count){
+    public void addProduct(Long userId, Long productId){
         CartEntity entity = cartRepository.findFirstByUserIdOrderByCreateTimeDesc(userId);
         if(entity==null || !orderService.isCartOrder(entity.getOrderId())){
-            Long orderId =orderService.createNewOrder(userId,productId,count);
+            Long orderId =orderService.createNewOrder(userId,productId);
             entity =new CartEntity();
             entity.setOrderId(orderId);
             entity.setUserId(userId);

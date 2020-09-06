@@ -61,7 +61,7 @@ public class OrderService {
         if (productIds == null) return null;
         List<Product> orderProducts = productService.getProducts(productIds);
         Long cost = orderProducts.stream().map(product -> {
-            return product.getCount() * product.getPrice();
+            return  product.getPrice();
         }).mapToLong(Long::longValue).sum();
         Order order = new Order();
         order.setProducts(orderProducts);
@@ -75,17 +75,16 @@ public class OrderService {
         return entity != null;
     }
 
-    public Long createNewOrder(Long userId, Long productId, Integer count) {
+    public Long createNewOrder(Long userId, Long productId) {
         OrderEntity orderEntity = createNewOrderForCart(userId);
-        addProductIntoCartOrder(productId, orderEntity.getId(),count);
+        addProductIntoCartOrder(productId, orderEntity.getId());
         return orderEntity.getId();
     }
 
-    private void addProductIntoCartOrder(Long productId, Long orderId,Integer count) {
+    private void addProductIntoCartOrder(Long productId, Long orderId) {
         OrderProductMappingEntity mappingEntity = new OrderProductMappingEntity();
         mappingEntity.setProductId(productId);
         mappingEntity.setOrderId(orderId);
-        mappingEntity.setProductCount(count);
         productMappingRepository.save(mappingEntity);
     }
 

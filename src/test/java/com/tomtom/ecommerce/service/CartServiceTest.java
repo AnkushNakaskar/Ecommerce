@@ -51,8 +51,8 @@ public class CartServiceTest {
 
     @Test
     public void testAddFirstProduct(){
-        Mockito.when(orderService.createNewOrder(USER_ID,PRODUCT_ID, count)).thenReturn(ORDER_ID);
-        cartService.addProduct(USER_ID,PRODUCT_ID, count);
+        Mockito.when(orderService.createNewOrder(USER_ID,PRODUCT_ID)).thenReturn(ORDER_ID);
+        cartService.addProduct(USER_ID,PRODUCT_ID);
         Mockito.verify(cartRepository,Mockito.times(1)).save(Mockito.any(CartEntity.class));
         Mockito.verify(orderService,Mockito.times(0)).addProduct(PRODUCT_ID,ORDER_ID);
     }
@@ -61,10 +61,10 @@ public class CartServiceTest {
     public void testAddProduct(){
         Mockito.when(cartRepository.findFirstByUserIdOrderByCreateTimeDesc(USER_ID)).thenReturn(getDummyCartEntity());
         Mockito.when(orderService.isCartOrder(ORDER_ID)).thenReturn(true);
-        cartService.addProduct(USER_ID,PRODUCT_ID, count);
+        cartService.addProduct(USER_ID,PRODUCT_ID);
         Mockito.verify(cartRepository,Mockito.times(1)).save(Mockito.any(CartEntity.class));
         Mockito.verify(orderService,Mockito.times(1)).addProduct(PRODUCT_ID,ORDER_ID);
-        Mockito.verify(orderService,Mockito.times(0)).createNewOrder(USER_ID,ORDER_ID, count);
+        Mockito.verify(orderService,Mockito.times(0)).createNewOrder(USER_ID,ORDER_ID);
 
     }
 

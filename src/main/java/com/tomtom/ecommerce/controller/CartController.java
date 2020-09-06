@@ -30,10 +30,10 @@ public class CartController {
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/addProduct/{productId}/{count}")
-    public ResponseEntity<String> addProduct(@PathVariable Long userId, @PathVariable Long productId, @PathVariable Integer count){
+    @PutMapping("/addProduct/{productId}")
+    public ResponseEntity<String> addProduct(@PathVariable Long userId, @PathVariable Long productId){
         try {
-            cartService.addProduct(userId, productId,count);
+            cartService.addProduct(userId, productId);
             return new ResponseEntity<>("Success ..!!!",HttpStatus.OK);
         }catch (Exception e){
             System.out.println("Exception in adding the product in cart for user : "+userId + " exception :: "+e);
@@ -41,8 +41,8 @@ public class CartController {
         return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PutMapping("/removeProduct/{productId}/{count}")
-    public ResponseEntity<String> removeProduct(@PathVariable Long userId, @PathVariable Long productId, @PathVariable Integer count){
+    @PutMapping("/removeProduct/{productId}")
+    public ResponseEntity<String> removeProduct(@PathVariable Long userId, @PathVariable Long productId){
         try {
             cartService.removeProduct(userId, productId);
             return new ResponseEntity<>("Success ..!!!",HttpStatus.OK);

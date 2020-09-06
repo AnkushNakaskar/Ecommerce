@@ -152,6 +152,7 @@ public class ProductServiceTest {
         entity.setName("Test");
         entity.setAvailable(true);
         entity.setPrice(20L);
+        entity.setCount(1);
         return entity;
     }
 
