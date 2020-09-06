@@ -44,7 +44,7 @@ public class CartController {
     @PutMapping("/removeProduct/{productId}/{count}")
     public ResponseEntity<String> removeProduct(@PathVariable Long userId, @PathVariable Long productId, @PathVariable Integer count){
         try {
-            cartService.removeProduct(userId, productId,count);
+            cartService.removeProduct(userId, productId);
             return new ResponseEntity<>("Success ..!!!",HttpStatus.OK);
         }catch (Exception e){
             System.out.println("Exception in removing the product in cart for user : "+userId + " exception :: "+e);
