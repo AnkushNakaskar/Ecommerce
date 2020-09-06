@@ -1,0 +1,28 @@
+spring:
+  jackson:
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES  : true
+  datasource:
+    url: 'jdbc:h2:mem:db;DB_CLOSE_DELAY=-1'
+    username: sa
+    password: 'sa@pp'
+    driver-class-name: 'org.h2.Driver'
+    tomcat:
+      max-active: 200
+      max-wait: 30000
+      min-idle: 10
+      max-idle: 15
+  jpa:
+    show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    generate-ddl: true
+
+server:
+  servlet:
+    context-path: '/api/tomtom'
+  endpoints:
+    web:
+      exposure:
+        include: '*'
