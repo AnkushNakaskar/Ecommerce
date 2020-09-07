@@ -2,7 +2,7 @@
 * This project is about Shopping card with two perspective for Seller & User
 * This has below feature
     * From Seller View
-        * Seller can add product in inventory
+        * Seller can add/remove product in inventory
         * Seller can see all the product ,added by him/her
     * Customer View
         * Customer can add product to Cart
