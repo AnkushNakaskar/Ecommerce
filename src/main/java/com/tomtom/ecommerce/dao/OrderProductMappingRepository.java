@@ -16,6 +16,10 @@ public interface OrderProductMappingRepository extends JpaRepository<OrderProduc
 
 
     @Modifying
+    @Query(value = "update  order_product_mapping  set productCount = :productCount  WHERE orderId = :orderId and productId = :productId ", nativeQuery = true)
+    int updateMappingOrderIdAndProductIdWithCount(@Param("orderId") Long orderId, @Param("productId") Long productId, @Param("productCount") Integer productCount);
+
+    @Modifying
     @Query(value = "DELETE FROM order_product_mapping WHERE orderId = :orderId and productId = :productId", nativeQuery = true)
     int deleteMappingOrderIdAndProductId(@Param("orderId") Long orderId, @Param("productId") Long productId);
 

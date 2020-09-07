@@ -58,9 +58,16 @@ public class OrderServiceTest {
     }
 
     @Test
-    public void testRemoveProduct(){
-        orderService.removeProduct(PRODUCT_ID,ORDER_ID);
+    public void testRemoveProductMakeUnAvailable(){
+        orderService.removeProduct(PRODUCT_ID,ORDER_ID, 0);
         Mockito.verify(productMappingRepository,Mockito.times(1)).deleteMappingOrderIdAndProductId(ORDER_ID,PRODUCT_ID);
+    }
+
+    @Test
+    public void testRemoveProductUpdateCount(){
+        orderService.removeProduct(PRODUCT_ID,ORDER_ID, 1);
+        Mockito.verify(productMappingRepository,Mockito.times(0)).deleteMappingOrderIdAndProductId(ORDER_ID,PRODUCT_ID);
+        Mockito.verify(productMappingRepository,Mockito.times(1)).updateMappingOrderIdAndProductIdWithCount(ORDER_ID,PRODUCT_ID,1);
     }
 
     @Test
@@ -84,6 +91,7 @@ public class OrderServiceTest {
 
         Mockito.when(productMappingRepository.findByOrderId(ORDER_ID)).thenReturn(Arrays.asList(getDummyProductOrderMappingEntity()));
         Mockito.when(productService.getProducts(Arrays.asList(PRODUCT_ID))).thenReturn(Arrays.asList(getDummyProductBean()));
+        Mockito.when(productService.getProduct(PRODUCT_ID)).thenReturn(getDummyProductBean());
         Order order = orderService.getOrder(ORDER_ID, OrderStage.IN_CART);
         Assert.assertNotNull(order);
         Assert.assertEquals(1,order.getProducts().size());
@@ -99,8 +107,16 @@ public class OrderServiceTest {
     @Test
     public void testCreateNewOrder(){
         Mockito.when(orderRepository.save(Mockito.any())).thenReturn(getDummyOrderEntity());
-        orderService.createNewOrder(USER_ID,PRODUCT_ID);
+        Mockito.when(productService.isProductAvailable(PRODUCT_ID)).thenReturn(true);
+        orderService.createNewOrder(USER_ID,PRODUCT_ID, 1);
         Mockito.verify(productMappingRepository,Mockito.times(1)).save(Mockito.any(OrderProductMappingEntity.class));
+    }
+    @Test
+    public void testCreateNewOrderProductIsNotAvailable(){
+        Mockito.when(orderRepository.save(Mockito.any())).thenReturn(getDummyOrderEntity());
+        Mockito.when(productService.isProductAvailable(PRODUCT_ID)).thenReturn(false);
+        orderService.createNewOrder(USER_ID,PRODUCT_ID, 1);
+        Mockito.verify(productMappingRepository,Mockito.times(0)).save(Mockito.any(OrderProductMappingEntity.class));
     }
 
     @Test
@@ -108,8 +124,11 @@ public class OrderServiceTest {
         OrderEntity orderEntity =getDummyOrderEntity();
         Mockito.when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(orderEntity));
         Mockito.when(productMappingRepository.findByOrderId(ORDER_ID)).thenReturn(Arrays.asList(getDummyProductOrderMappingEntity()));
-        orderService.placeOrder(ORDER_ID);
-        Mockito.verify(productService,Mockito.times(1)).markUnavailable(Mockito.anyList());
+
+        Mockito.when(productService.getProduct(PRODUCT_ID)).thenReturn(getDummyProductBean());
+
+        orderService.placeOrder(ORDER_ID, USER_ID);
+        Mockito.verify(productService,Mockito.times(1)).markUnavailable(PRODUCT_ID,2);
         Mockito.verify(orderRepository,Mockito.times(1)).save(Mockito.any(OrderEntity.class));
     }
 
@@ -127,6 +146,7 @@ public class OrderServiceTest {
         entity.setProductId(PRODUCT_ID);
         entity.setOrderId(ORDER_ID);
         entity.setId(20L);
+        entity.setProductCount(2);
         return entity;
     }
 
@@ -136,6 +156,7 @@ public class OrderServiceTest {
         entity.setName("Test");
         entity.setAvailable(true);
         entity.setPrice(20L);
+        entity.setCount(2);
         return entity;
     }
 

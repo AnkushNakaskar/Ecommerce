@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+
 @Service
 public class CartService {
 
@@ -31,13 +33,18 @@ public class CartService {
         return cart;
     }
 
-    public void addProduct(Long userId, Long productId){
+    public void addProduct(Long userId, Long productId, Integer count){
         CartEntity entity = cartRepository.findFirstByUserIdOrderByCreateTimeDesc(userId);
         if(entity==null || !orderService.isCartOrder(entity.getOrderId())){
-            Long orderId =orderService.createNewOrder(userId,productId);
+            Long orderId =orderService.createNewOrder(userId,productId,count);
+            if(orderId==null){
+                return;
+            }
             entity =new CartEntity();
             entity.setOrderId(orderId);
             entity.setUserId(userId);
+            entity.setCreateTime(new Date());
+            entity.setUpdateTime(new Date());
 
         }else{
             orderService.addProduct( productId,entity.getOrderId());
@@ -46,17 +53,18 @@ public class CartService {
     }
 
     @Transactional
-    public void removeProduct(Long userId,Long productId){
+    public void removeProduct(Long userId, Long productId, Integer count){
         CartEntity entity = cartRepository.findFirstByUserIdOrderByCreateTimeDesc(userId);
         if(entity!=null &&  orderService.isCartOrder(entity.getOrderId())){
-            orderService.removeProduct(productId, entity.getOrderId());
+            orderService.removeProduct(productId, entity.getOrderId(),count);
         }
     }
 
     public void placeOrder(Long userId){
         CartEntity entity = cartRepository.findFirstByUserIdOrderByCreateTimeDesc(userId);
         if(entity!=null &&  orderService.isCartOrder(entity.getOrderId())) {
-            orderService.placeOrder(entity.getOrderId());
+            orderService.placeOrder(entity.getOrderId(),entity.getUserId());
+            cartRepository.deleteById(entity.getId());
         }
     }
 

@@ -43,6 +43,17 @@ public class ProductService {
         }
     }
 
+    public void markUnavailable(Long productId, Integer count) {
+        Optional<ProductEntity> entityOptional = productRepository.findById(productId);
+        if(entityOptional.isPresent()){
+            entityOptional.get().setCount(Math.max(0,entityOptional.get().getCount()-count));
+            if(entityOptional.get().getCount()==null || entityOptional.get().getCount()<1){
+                entityOptional.get().setAvailable(false);
+            }
+            productRepository.save(entityOptional.get());
+        }
+    }
+
 
     public List<Product> getAllProductForSeller(Long sellerId) {
         List<ProductEntity> entities = productRepository.findBySellerId(sellerId);
@@ -97,6 +108,7 @@ public class ProductService {
         entity.setName(product.getName());
         entity.setPrice(product.getPrice());
         entity.setSellerId(product.getSellerId());
+        entity.setAvailable(product.getAvailable());
         entity.setCount(entity.getCount()+1);
         productRepository.save(entity);
     }
@@ -104,4 +116,6 @@ public class ProductService {
     public void removeProduct(Long sellerId, Long productId) {
         productRepository.deleteProduct(sellerId,productId);
     }
+
+
 }

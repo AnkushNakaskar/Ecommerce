@@ -23,7 +23,7 @@ public class CartEntity implements Serializable {
     private Long id;
 
 
-    @Column(name = "userId")
+    @Column(name = "userId",unique = true)
     private Long userId;
 
 

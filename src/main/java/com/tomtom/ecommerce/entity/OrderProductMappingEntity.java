@@ -28,6 +28,8 @@ public class OrderProductMappingEntity implements Serializable {
     private Long orderId;
 
 
+
+
     @Column(name = "productCount")
     private Integer productCount;
 

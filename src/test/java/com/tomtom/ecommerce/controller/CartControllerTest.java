@@ -45,13 +45,13 @@ public class CartControllerTest {
     @Test
     public void testAddNewProduct() throws Exception {
         Long productId = 124L;
-        this.mockMvc.perform(put("/users/" + USER_ID + "/cart/addProduct/" + productId)).andExpect(status().isOk()).andDo(print());
+        this.mockMvc.perform(put("/users/" + USER_ID + "/cart/addProduct?productId=" + productId +"&count="+2)).andExpect(status().isOk()).andDo(print());
     }
 
     @Test
     public void testRemoveProduct() throws Exception {
         Long productId = 124L;
-        this.mockMvc.perform(put("/users/" + USER_ID + "/cart/removeProduct/" + productId)).andExpect(status().isOk()).andDo(print());
+        this.mockMvc.perform(put("/users/" + USER_ID + "/cart/removeProduct?productId=" + productId+"&count="+2)).andExpect(status().isOk()).andDo(print());
     }
 
     @Test

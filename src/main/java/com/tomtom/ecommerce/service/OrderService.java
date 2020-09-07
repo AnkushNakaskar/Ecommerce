@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -47,8 +48,12 @@ public class OrderService {
 
 
     @Transactional
-    public void removeProduct(Long productId, Long orderId) {
-        productMappingRepository.deleteMappingOrderIdAndProductId(orderId, productId);
+    public void removeProduct(Long productId, Long orderId, Integer count) {
+        if(count==0){
+            productMappingRepository.deleteMappingOrderIdAndProductId(orderId, productId);
+        }else{
+            productMappingRepository.updateMappingOrderIdAndProductIdWithCount(orderId, productId,count);
+        }
     }
 
 
@@ -57,11 +62,11 @@ public class OrderService {
         if (orderEntity == null) {
             return null;
         }
-        List<Long> productIds = getOrderProductIds(orderId);
-        if (productIds == null) return null;
-        List<Product> orderProducts = productService.getProducts(productIds);
+
+        List<Product> orderProducts = getOrderProducts(orderId);
+        if (orderProducts == null) return null;
         Long cost = orderProducts.stream().map(product -> {
-            return  product.getPrice();
+            return  product.getCount() * product.getPrice();
         }).mapToLong(Long::longValue).sum();
         Order order = new Order();
         order.setProducts(orderProducts);
@@ -75,16 +80,22 @@ public class OrderService {
         return entity != null;
     }
 
-    public Long createNewOrder(Long userId, Long productId) {
-        OrderEntity orderEntity = createNewOrderForCart(userId);
-        addProductIntoCartOrder(productId, orderEntity.getId());
-        return orderEntity.getId();
+    public Long createNewOrder(Long userId, Long productId, Integer count) {
+        if(productService.isProductAvailable(productId)){
+            OrderEntity orderEntity = createNewOrderForCart(userId);
+            addProductIntoCartOrder(productId, orderEntity.getId(),count);
+            return orderEntity.getId();
+        }else {
+            System.out.println("No product available for product ID "+productId);
+            return null;
+        }
     }
 
-    private void addProductIntoCartOrder(Long productId, Long orderId) {
+    private void addProductIntoCartOrder(Long productId, Long orderId, Integer count) {
         OrderProductMappingEntity mappingEntity = new OrderProductMappingEntity();
         mappingEntity.setProductId(productId);
         mappingEntity.setOrderId(orderId);
+        mappingEntity.setProductCount(count);
         productMappingRepository.save(mappingEntity);
     }
 
@@ -92,28 +103,79 @@ public class OrderService {
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.setStage(OrderStage.IN_CART);
         orderEntity.setUserId(userId);
+        orderEntity.setCreateTime(new Date());
+        orderEntity.setUpdateTime(new Date());
         orderEntity = orderRepository.save(orderEntity);
         return orderEntity;
     }
 
     @Transactional
-    public void placeOrder(Long orderId) {
+    public void placeOrder(Long orderId, Long userId) {
         Optional<OrderEntity> optionalOrderEntity = orderRepository.findById(orderId);
         if (optionalOrderEntity.isPresent()) {
-            List<Long> productIds = getOrderProductIds(orderId);
-            productService.markUnavailable(productIds);
+            List<Product> products = getOrderProducts(orderId);
+            products.stream().forEach(product -> {
+                productService.markUnavailable(product.getId(),product.getCount());
+            });
             optionalOrderEntity.get().setStage(OrderStage.PLACED);
+            optionalOrderEntity.get().setUserId(userId);
             orderRepository.save(optionalOrderEntity.get());
         }
     }
+
 
     private List<Long> getOrderProductIds(Long orderId) {
         List<OrderProductMappingEntity> mappingEntities = productMappingRepository.findByOrderId(orderId);
         if (mappingEntities.isEmpty()) {
             return null;
         }
-
-        List<Long> productIds = mappingEntities.stream().map(OrderProductMappingEntity::getProductId).collect(Collectors.toList());
-        return productIds;
+        return mappingEntities.stream().map(OrderProductMappingEntity::getProductId).collect(Collectors.toList());
     }
+    private List<Product> getOrderProducts(Long orderId) {
+        List<OrderProductMappingEntity> mappingEntities = productMappingRepository.findByOrderId(orderId);
+        if (mappingEntities.isEmpty()) {
+            return null;
+        }
+
+        List<Product> orderProducts = mappingEntities.stream().map(entity -> {
+            Product product =productService.getProduct(entity.getProductId());
+            product.setCount(entity.getProductCount());
+            return product;
+        }).collect(Collectors.toList());
+
+        return orderProducts;
+    }
+
+    public List<Order> getOrderForUser(Long userId) {
+        List<OrderEntity> orderEntities = orderRepository.findAllByUserId(userId);
+        if(orderEntities==null){
+            return null;
+        }
+        return orderEntities.stream().map(orderEntity -> {
+            return getOrderFromEntity(orderEntity);
+        }).collect(Collectors.toList());
+    }
+
+    public List<Order> getAllOrder() {
+        List<OrderEntity> orderEntities = orderRepository.findAll();
+        if(orderEntities==null){
+            return null;
+        }
+        return orderEntities.stream().map(orderEntity -> {
+            return getOrderFromEntity(orderEntity);
+        }).collect(Collectors.toList());
+
+    }
+
+    private Order getOrderFromEntity(OrderEntity orderEntity) {
+        Order order =new Order();
+        order.setId(orderEntity.getId());
+        order.setOrderStage(orderEntity.getStage());
+        order.setUserId(orderEntity.getUserId());
+        order.setCreateTime(orderEntity.getCreateTime());
+        order.setUpdateTime(orderEntity.getUpdateTime());
+        return order;
+    }
+
+
 }
